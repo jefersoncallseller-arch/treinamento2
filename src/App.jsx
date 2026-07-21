@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import produtosData from "./produtos.json";
 
 /* ==================================================================
    SITE DE TREINAMENTO — CROSSELL / CALLSELLER  (protótipo)
@@ -153,25 +154,36 @@ const LIGACOES = [
 
 /* ------------------------- ROLEPLAY: MÉTODO + PROMPTS ------------------------- */
 
-const METODO = `MÉTODO DE CROSSELL DA CALLSELLER (nutracêuticos — cliente JÁ comprou).
-Regra do complementar: quem comprou CÁPSULAS recebe oferta de GOTAS (absorção mais rápida); quem comprou GOTAS recebe CÁPSULAS (ação mais prolongada).
-AS 6 ETAPAS: 1) Abordagem+confirmação do pedido/endereço (nunca abrir com "oferta"). 2) Diagnóstico (fazer falar da dor). 3) Explicação do problema ("tem solução, mas exige tratamento certo e completo"). 4) Modo de uso do que comprou. 5) Ponte: uso dos DOIS juntos, complementar como protocolo (não "oferta"). 6) Oferta+fechamento: 12x R$24 + garantia 30 dias + escassez real; fallback 1 frasco.
-4 PILARES: Especialista · Produto (dos melhores do Brasil) · Empresa (+10 mil/dia, sem reclamação) · Garantia (30 dias, risco zero).
-OBJEÇÃO: Acolher → não discutir → devolver com valor.
-ERROS: abrir oferecendo; pular diagnóstico; falar preço cedo; tratar como venda; discutir objeção; complementar como 2ª venda; desligar no 1º não; ter pressa.`;
+const METODO = `MÉTODO DE ATENDIMENTO / CROSSELL DA CALLSELLER (nutracêuticos — o cliente JÁ comprou no site e já pagou).
+ESTRUTURA DO ATENDIMENTO: 1) Abordagem — apresentar-se como especialista, tom calmo de consultório, confirmar o pedido/endereço (NUNCA abrir com "oferta"). 2) Diagnóstico — fazer o cliente falar da dor, em tom de conversa, sem interrogatório; escutar. 3) Explicação do problema — "tem solução, mas exige o tratamento certo e completo". 4) Informações/modo de uso do produto que ele comprou. 5) Ponte — uso do complementar JUNTO com o que ele comprou, como protocolo único (não como "2ª oferta"). 6) Fechamento — apresentar a condição, garantia de 30 dias e escassez real.
+4 PILARES: Especialista (amigo que quer ajudar, não vender) · Produto (um dos principais tratamentos do Brasil) · Empresa (+10 mil pacientes/dia, sem reclamação, acompanhamento no WhatsApp) · Garantia (30 dias, a lei exige só 7 — risco zero).
+ESTRATÉGIA DE KIT: ofertar no mínimo +2 frascos do que ele comprou ("tratamento é de X meses, você precisa de mais 2 pra completar") + argumento de estoque reduzido/matéria-prima importada.
+VALORES: 1 frasco R$97 (12x9,90) · 2 frascos R$149 (12x14,90) · 3 frascos R$198 (12x19,90) · 5 frascos R$298 (12x29,90) · 6 frascos R$349 (12x34,90) · 12 frascos R$598 (12x59,90).
+OBJEÇÃO "não vi esse produto no site": acolher → "o senhor entrou na aba de tratamentos complementares, que aparece pra quem já está iniciando o tratamento; meu papel como especialista é te explicar o modo de uso correto, não te vender nada" → reforçar garantia + acompanhamento → fallback: 1 frasco a preço de custo (12x R$9) pra iniciar do jeito certo.
+OBJEÇÃO (geral): Acolher → não discutir → devolver com valor (reconectar com a dor + garantia + resultado + preço por dia).
+ERROS: abrir oferecendo; pular diagnóstico; falar preço cedo; tratar como venda e não como consulta; discutir a objeção; apresentar o complementar como 2ª venda; desligar no 1º "não"; ter pressa.`;
 
-function clientSystem(s) {
+function clientSystem(p, dificuldade) {
   return `${METODO}
 
-VOCÊ É O CLIENTE numa ligação. Você é ${s.persona}. JÁ COMPROU o ${s.produto} em ${s.comprou} — já pagou. Queixa: ${s.dor}. Jeito: ${s.humor}.
-Quem ligou é um vendedor que se apresenta como especialista. Você não sabe de método nenhum — é só uma pessoa real no telefone.
-- Fale português coloquial do Brasil, falas CURTAS (1–3 frases). Sem narração, sem asteriscos.
+CONTEXTO DO PRODUTO (é a copy que o VENDEDOR deveria seguir — você NÃO conhece isso, é só referência pra você reagir com realismo):
+Produto que o cliente comprou: ${p.produto}${p.empresa ? ` (empresa ${p.empresa})` : ""}
+Foco / problema que trata: ${p.foco || p.categoria}
+Modo de uso correto: ${p.modoUso || "(o vendedor deve explicar)"}
+Complementar que o vendedor vai tentar oferecer (crossell): ${p.crossell || "um produto complementar"}
+--- trecho da copy do produto ---
+${(p.copy || "").slice(0, 2600)}
+--- fim do trecho ---
+
+VOCÊ É O CLIENTE numa ligação telefônica. Você comprou o "${p.produto}" no site e JÁ PAGOU. Você tem uma queixa real relacionada a "${p.foco || p.categoria}" — invente detalhes plausíveis e mantenha coerência (idade, há quanto tempo sente, como atrapalha o dia a dia).
+Quem te ligou é um vendedor que se apresenta como especialista. Você não sabe de método nenhum — é só uma pessoa real no telefone.
+- Fale português coloquial do Brasil, falas CURTAS (1–3 frases). Sem narração, sem asteriscos, sem emoji.
 - Você não está louco pra comprar mais; já gastou. Fica meio na defensiva, sem ser grosseiro.
-- Só esquenta e considera o complementar (${s.complementar}) SE o vendedor fizer o método: confirmar pedido, perguntar da dor e ESCUTAR, explicar o problema, orientar o uso, e trazer o complementar como parte do tratamento. Se ele abrir empurrando oferta, tiver pressa, falar preço cedo ou DISCUTIR sua objeção, você esfria e tende ao "vou pensar".
-- Solte objeções reais, uma por vez, na hora natural — suas principais: ${s.objecoes.map((o) => `"${o}"`).join(", ")}. Também: "tá caro", "vou pensar", "preciso falar com meu/minha [cônjuge]", "não vi no site".
-- Dificuldade ${s.dificuldade}. Fácil = esquenta rápido, 1 objeção, fecha se razoável. Média = 2 objeções. Difícil = cético, 3+ objeções, só fecha se muito bem feito.
+- Só esquenta e considera o complementar (${p.crossell || "o complementar"}) SE o vendedor fizer o método: confirmar pedido, perguntar da dor e ESCUTAR, explicar o problema, orientar o uso, e trazer o complementar como parte do tratamento. Se ele abrir empurrando oferta, tiver pressa, falar preço cedo ou DISCUTIR sua objeção, você esfria e tende ao "vou pensar".
+- Solte objeções reais, uma por vez, na hora natural: "não vi esse produto no site", "tá caro / não tenho condições agora", "vou pensar", "preciso falar com meu/minha esposo(a)", "já gastei bastante".
+- Dificuldade ${dificuldade}. Fácil = esquenta rápido, 1 objeção, fecha se razoável. Média = 2 objeções. Difícil = cético, 3+ objeções, só fecha se muito bem feito.
 - Decide sozinho se compra, conforme o vendedor merecer. Pode não comprar se ele foi empurrão.
-- NUNCA ensine o vendedor, NUNCA saia do personagem, NUNCA diga que é IA nem cite etapas.
+- NUNCA ensine o vendedor, NUNCA saia do personagem, NUNCA diga que é IA nem cite etapas/método.
 Responda agora só como o cliente, com uma fala curta de telefone.`;
 }
 
@@ -181,19 +193,60 @@ Você é um AVALIADOR. Recebe a transcrição de uma ligação de crossell (V = 
 Responda APENAS com JSON válido, sem markdown/crases. Campos curtos (obs até ~12 palavras). Formato:
 {"nota":number 0-10 uma decimal,"resumo":"1 frase","etapas":[{"nome":"Abordagem e confirmação","status":"feita|parcial|nao_feita","obs":"curto"},{"nome":"Diagnóstico da dor","status":"...","obs":"..."},{"nome":"Explicação do problema","status":"...","obs":"..."},{"nome":"Modo de uso do produto comprado","status":"...","obs":"..."},{"nome":"A ponte (crossell)","status":"...","obs":"..."},{"nome":"Oferta e fechamento","status":"...","obs":"..."}],"pilares":{"especialista":"sim|parcial|nao","produto":"...","empresa":"...","garantia":"..."},"objecoes":"1 frase","fortes":["curto"],"faltou":["curto"],"dicas":["curto","curto","curto"],"fechou":true|false}`;
 
-const SCENARIOS = [
-  { id: "articulacao", emoji: "🦵", titulo: "Dor no joelho", persona: "Dona Cleusa, 58 anos", produto: "tratamento para articulação", comprou: "cápsulas", complementar: "gotas", dor: "dor no joelho há uns 2 anos, dói pra subir escada", dificuldade: "Média", humor: "educada, cansada do problema, receptiva se sentir cuidado", objecoes: ["mas eu só comprei as cápsulas", "vou pensar"] },
-  { id: "sono", emoji: "😴", titulo: "Insônia", persona: "Seu Ademar, 63 anos", produto: "tratamento para o sono", comprou: "gotas", complementar: "cápsulas", dor: "não dorme direito há meses, acorda várias vezes", dificuldade: "Difícil", humor: "desconfiado, sente que já gastou", objecoes: ["tá caro", "já gastei bastante", "preciso falar com minha esposa"] },
-  { id: "prostata", emoji: "🩺", titulo: "Próstata", persona: "Seu Nilton, 60 anos", produto: "tratamento para a próstata", comprou: "cápsulas", complementar: "gotas", dor: "levanta 3, 4 vezes por noite pra ir ao banheiro", dificuldade: "Difícil", humor: "reservado, cético, não gosta de se sentir empurrado", objecoes: ["vou pensar", "não vi isso no site quando comprei"] },
-  { id: "energia", emoji: "⚡", titulo: "Cansaço", persona: "Márcia, 45 anos", produto: "tratamento para energia", comprou: "cápsulas", complementar: "gotas", dor: "vive cansada, sem energia pro dia a dia", dificuldade: "Fácil", humor: "animada e aberta, só precisa de segurança", objecoes: ["tá um pouco caro"] },
-  { id: "circulacao", emoji: "🦶", titulo: "Circulação", persona: "Dona Ivone, 67 anos", produto: "tratamento para circulação", comprou: "gotas", complementar: "cápsulas", dor: "pernas inchadas e pesadas no fim do dia", dificuldade: "Média", humor: "simpática mas teimosa, apegada ao que escolheu", objecoes: ["mas eu já escolhi as gotas, só quero elas mesmo"] },
+/* ---- Produtos reais (extraídos da copy) + categorias ---- */
+
+const CATEGORIAS = [
+  { nome: "Memória e cognição", emoji: "🧠", match: ["memokare", "memoforce", "memoralis", "memopower", "memosenior", "memosênior", "memosênior", "neurocare"] },
+  { nome: "Emagrecimento", emoji: "⚖️", match: ["barigless", "gelatina", "gelaime", "slimjaro"] },
+  { nome: "Diabetes e glicada", emoji: "🩸", match: ["glicoreset", "glicofit", "dropsugar", "supernervo"] },
+  { nome: "Articulação e dores", emoji: "🦴", match: ["articure", "alive", "dorcular", "dorinflex", "vigorart", "creatmina"] },
+  { nome: "Próstata", emoji: "🚹", match: ["betaprost", "prostasafe"] },
+  { nome: "Visão", emoji: "👁️", match: ["melvis"] },
+  { nome: "Intestino", emoji: "🌿", match: ["proctoalivio", "pinkgelatin"] },
+  { nome: "Pele", emoji: "✨", match: ["renavie"] },
+  { nome: "Outros", emoji: "💊", match: ["eromax", "tireozen", "d-max", "dmax", "d_max"] },
 ];
+
+function categoriaDe(p) {
+  const alvo = `${p.produto} ${p.aba} ${p.id}`.toLowerCase();
+  for (const c of CATEGORIAS) {
+    if (c.match.some((m) => alvo.includes(m))) return c;
+  }
+  return CATEGORIAS[CATEGORIAS.length - 1];
+}
+
+const PRODUTOS = produtosData.produtos
+  .filter((p) => !p.vazio)
+  .map((p) => {
+    const cat = categoriaDe(p);
+    return { ...p, nome: p.produto || p.aba, categoria: cat.nome, emoji: cat.emoji };
+  });
 
 async function callClaude({ system, messages }) {
   // Fala com o backend em /api/ia.js, que chama o Groq com a chave server-side.
   const res = await fetch("/api/ia", {
     method: "POST", headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ system, messages }),
+  });
+  if (!res.ok) throw new Error("HTTP " + res.status);
+  const data = await res.json();
+  return (data.text || "").trim();
+}
+
+// Converte um Blob de áudio pra base64 e manda pro /api/transcrever (Groq Whisper).
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onloadend = () => resolve(String(r.result).split(",")[1] || "");
+    r.onerror = reject;
+    r.readAsDataURL(blob);
+  });
+}
+async function transcreverAudio(blob) {
+  const audio = await blobToBase64(blob);
+  const res = await fetch("/api/transcrever", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ audio, mime: blob.type || "audio/webm" }),
   });
   if (!res.ok) throw new Error("HTTP " + res.status);
   const data = await res.json();
@@ -469,9 +522,17 @@ function Ligacoes() {
 
 const COLA_MINI = COLA_ETAPAS;
 
+// Escolhe uma voz pt-BR pra fala do cliente (voz do navegador, grátis).
+function pickVoicePtBr() {
+  if (typeof window === "undefined" || !window.speechSynthesis) return null;
+  const vs = window.speechSynthesis.getVoices();
+  return vs.find((v) => /pt[-_]?br/i.test(v.lang)) || vs.find((v) => /^pt/i.test(v.lang)) || null;
+}
+
 function RoleplayView() {
   const [stage, setStage] = useState("select"); // select | chat | result
   const [scenario, setScenario] = useState(null);
+  const [dificuldade, setDificuldade] = useState("Média");
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [waiting, setWaiting] = useState(false);
@@ -479,36 +540,92 @@ function RoleplayView() {
   const [evaluation, setEvaluation] = useState(null);
   const [error, setError] = useState("");
   const [showCola, setShowCola] = useState(false);
+  const [voiceOn, setVoiceOn] = useState(true);
+  const [recording, setRecording] = useState(false);
+  const [transcribing, setTranscribing] = useState(false);
   const scrollRef = useRef(null);
+  const recRef = useRef(null);
+  const chunksRef = useRef([]);
+  const streamRef = useRef(null);
 
-  useEffect(() => { if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight; }, [messages, waiting]);
+  useEffect(() => { if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight; }, [messages, waiting, transcribing]);
+  // pré-carrega vozes do navegador
+  useEffect(() => { if (window.speechSynthesis) { pickVoicePtBr(); window.speechSynthesis.onvoiceschanged = () => pickVoicePtBr(); } return () => { if (window.speechSynthesis) window.speechSynthesis.cancel(); }; }, []);
 
-  function start(s) {
-    setScenario(s); setMessages([{ role: "cliente", text: "Alô?", opening: true }]);
+  function speak(text) {
+    if (!voiceOn || !window.speechSynthesis || !text) return;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    const v = pickVoicePtBr();
+    if (v) u.voice = v;
+    u.lang = "pt-BR"; u.rate = 1.0; u.pitch = 1.0;
+    window.speechSynthesis.speak(u);
+  }
+
+  function start(s, dif) {
+    const d = dif || dificuldade;
+    setScenario(s); setDificuldade(d);
+    setMessages([{ role: "cliente", text: "Alô?", opening: true }]);
     setInput(""); setError(""); setEvaluation(null); setStage("chat");
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
   }
   function buildApi(msgs) {
     const mapped = msgs.map((m) => ({ role: m.role === "cliente" ? "assistant" : "user", content: m.text }));
     let i = 0; while (i < mapped.length && mapped[i].role === "assistant") i++;
     return mapped.slice(i);
   }
-  async function send() {
-    const text = input.trim(); if (!text || waiting) return;
+  async function send(textArg) {
+    const text = (textArg != null ? textArg : input).trim();
+    if (!text || waiting) return;
     const next = [...messages, { role: "vendedor", text }];
     setMessages(next); setInput(""); setWaiting(true); setError("");
     try {
-      const reply = await callClaude({ system: clientSystem(scenario), messages: buildApi(next) });
-      setMessages((m) => [...m, { role: "cliente", text: reply || "..." }]);
+      const reply = await callClaude({ system: clientSystem(scenario, dificuldade), messages: buildApi(next) });
+      const r = reply || "...";
+      setMessages((m) => [...m, { role: "cliente", text: r }]);
+      speak(r);
     } catch { setError("Falha ao falar com o cliente. Tente de novo."); }
     finally { setWaiting(false); }
   }
+
+  async function startRec() {
+    if (recording || waiting || transcribing) return;
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+      chunksRef.current = [];
+      const mr = new MediaRecorder(stream);
+      mr.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
+      mr.onstop = async () => {
+        const blob = new Blob(chunksRef.current, { type: mr.mimeType || "audio/webm" });
+        if (streamRef.current) streamRef.current.getTracks().forEach((t) => t.stop());
+        if (blob.size < 1200) { setError("Não captei áudio. Fale um pouco mais perto do microfone."); return; }
+        setTranscribing(true); setError("");
+        try {
+          const texto = await transcreverAudio(blob);
+          if (texto) await send(texto);
+          else setError("Não entendi o áudio. Tente de novo.");
+        } catch { setError("Falha ao transcrever o áudio. Tente de novo."); }
+        finally { setTranscribing(false); }
+      };
+      recRef.current = mr;
+      mr.start();
+      setRecording(true);
+    } catch { setError("Não consegui acessar o microfone. Libere a permissão no navegador."); }
+  }
+  function stopRec() {
+    if (recRef.current && recording) { recRef.current.stop(); setRecording(false); }
+  }
+
   async function finish() {
     if (evaluating) return;
     if (messages.filter((m) => m.role === "vendedor").length === 0) { setError("Conduza parte da ligação antes de avaliar."); return; }
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
     setEvaluating(true); setError("");
     const transcript = messages.map((m) => (m.role === "cliente" ? "C: " : "V: ") + m.text).join("\n");
     try {
-      const raw = await callClaude({ system: EVAL_SYSTEM, messages: [{ role: "user", content: `Cenário: ${scenario.persona}, comprou ${scenario.comprou} (${scenario.produto}); complementar: ${scenario.complementar}. Dificuldade ${scenario.dificuldade}.\n\nTRANSCRIÇÃO:\n${transcript}\n\nAvalie e retorne SÓ o JSON.` }] });
+      const raw = await callClaude({ system: EVAL_SYSTEM, messages: [{ role: "user", content: `Produto: ${scenario.nome} (${scenario.foco}); complementar (crossell): ${scenario.crossell}. Dificuldade ${dificuldade}.\n\nTRANSCRIÇÃO:\n${transcript}\n\nAvalie e retorne SÓ o JSON.` }] });
       const clean = raw.replace(/```json/gi, "").replace(/```/g, "").trim();
       const parsed = JSON.parse(clean.slice(clean.indexOf("{"), clean.lastIndexOf("}") + 1));
       setEvaluation(parsed); setStage("result");
@@ -516,19 +633,19 @@ function RoleplayView() {
     finally { setEvaluating(false); }
   }
 
-  if (stage === "select") return <RpSelect onPick={start} />;
-  if (stage === "result" && evaluation) return <RpResult ev={evaluation} scenario={scenario} onRetry={() => start(scenario)} onNew={() => setStage("select")} />;
+  if (stage === "select") return <RpSelect onPick={start} dificuldade={dificuldade} setDificuldade={setDificuldade} />;
+  if (stage === "result" && evaluation) return <RpResult ev={evaluation} scenario={scenario} onRetry={() => start(scenario, dificuldade)} onNew={() => setStage("select")} />;
   return (
     <div className="chat-layout">
       <aside className="side">
-        <button className="link-back" onClick={() => setStage("select")}>← trocar cenário</button>
+        <button className="link-back" onClick={() => setStage("select")}>← trocar produto</button>
         <div className="crm">
           <div className="crm-emoji">{scenario.emoji}</div>
-          <div className="crm-name">{scenario.persona}</div>
-          <div className="crm-line"><span>Queixa</span>{scenario.dor}</div>
-          <div className="crm-line"><span>Comprou</span>{scenario.comprou} — {scenario.produto}</div>
-          <div className="crm-line highlight"><span>Oferecer</span>{scenario.complementar}</div>
-          <div className="crm-line"><span>Nível</span><b style={{ color: diffColor(scenario.dificuldade) }}>{scenario.dificuldade}</b></div>
+          <div className="crm-name">{scenario.nome}</div>
+          <div className="crm-line"><span>Nicho</span>{scenario.foco || scenario.categoria}</div>
+          {scenario.modoUso && <div className="crm-line"><span>Modo de uso</span>{scenario.modoUso}</div>}
+          <div className="crm-line highlight"><span>Oferecer (crossell)</span>{scenario.crossell || "—"}</div>
+          <div className="crm-line"><span>Nível</span><b style={{ color: diffColor(dificuldade) }}>{dificuldade}</b></div>
         </div>
         <button className="cola-toggle" onClick={() => setShowCola(!showCola)}>{showCola ? "▾" : "▸"} Cola rápida — 6 etapas</button>
         {showCola && <ol className="cola">{COLA_MINI.map(([t, d]) => <li key={t}><b>{t}</b><span>{d}</span></li>)}</ol>}
@@ -536,53 +653,90 @@ function RoleplayView() {
       <main className="chat">
         <div className="chat-head">
           <div>
-            <div className="chat-head-title">Ligação em andamento</div>
-            <div className="chat-head-sub">Você é o especialista. Comece se apresentando e confirmando o pedido.</div>
+            <div className="chat-head-title">Ligação em andamento · {scenario.nome}</div>
+            <div className="chat-head-sub">Você é o especialista. Fale ou digite: apresente-se e confirme o pedido.</div>
           </div>
-          <button className="finish-btn" onClick={finish} disabled={evaluating}>{evaluating ? "Avaliando…" : "Encerrar e avaliar"}</button>
+          <div className="chat-head-actions">
+            <button className={`voice-toggle ${voiceOn ? "on" : ""}`} onClick={() => { setVoiceOn(!voiceOn); if (window.speechSynthesis) window.speechSynthesis.cancel(); }} title="Cliente fala em voz alta">
+              {voiceOn ? "🔊 Voz do cliente" : "🔇 Voz desligada"}
+            </button>
+            <button className="finish-btn" onClick={finish} disabled={evaluating}>{evaluating ? "Avaliando…" : "Encerrar e avaliar"}</button>
+          </div>
         </div>
         <div className="stream" ref={scrollRef}>
           {messages.map((m, i) => (
             <div key={i} className={`row ${m.role}`}>
-              <div className="who">{m.role === "cliente" ? scenario.persona.split(",")[0] : "Você"}</div>
+              <div className="who">{m.role === "cliente" ? "Cliente" : "Você"}</div>
               <div className={`bubble ${m.role}`}>{m.text}</div>
             </div>
           ))}
-          {waiting && <div className="row cliente"><div className="who">{scenario.persona.split(",")[0]}</div><div className="bubble cliente typing"><span></span><span></span><span></span></div></div>}
+          {(waiting || transcribing) && <div className="row cliente"><div className="who">{transcribing ? "Transcrevendo…" : "Cliente"}</div><div className="bubble cliente typing"><span></span><span></span><span></span></div></div>}
         </div>
         {error && <div className="err">{error}</div>}
         <div className="composer">
-          <textarea className="input" rows={1} placeholder="Fale como o especialista…" value={input}
+          <button className={`mic-btn ${recording ? "rec" : ""}`} onClick={recording ? stopRec : startRec} disabled={waiting || transcribing}
+            title={recording ? "Parar e enviar" : "Falar"}>
+            {recording ? "⏹ Parar" : "🎤 Falar"}
+          </button>
+          <textarea className="input" rows={1} placeholder={recording ? "Gravando… fale e depois toque em Parar" : "Fale (🎤) ou digite como o especialista…"} value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
-            disabled={waiting} />
-          <button className="send-btn" onClick={send} disabled={waiting || !input.trim()}>Enviar</button>
+            disabled={waiting || recording || transcribing} />
+          <button className="send-btn" onClick={() => send()} disabled={waiting || recording || transcribing || !input.trim()}>Enviar</button>
         </div>
       </main>
     </div>
   );
 }
 
-function RpSelect({ onPick }) {
+const DIFICULDADES = ["Fácil", "Média", "Difícil"];
+
+function RpSelect({ onPick, dificuldade, setDificuldade }) {
+  const [busca, setBusca] = useState("");
+  const q = busca.trim().toLowerCase();
+  const filtrados = PRODUTOS.filter((p) =>
+    !q || `${p.nome} ${p.foco} ${p.categoria} ${p.crossell}`.toLowerCase().includes(q)
+  );
+  const porCategoria = CATEGORIAS
+    .map((c) => ({ cat: c, itens: filtrados.filter((p) => p.categoria === c.nome) }))
+    .filter((g) => g.itens.length > 0);
+
   return (
     <div className="wrap">
       <div className="rp-intro">
         <div className="kicker">Fazer o treino</div>
-        <h1 className="mat-title" style={{ fontSize: "40px" }}>Roleplay com a <em>IA cliente</em></h1>
-        <p className="mat-lede">Escolha um cenário. O cliente atende, resiste e joga objeções reais. Conduza pelo método e receba uma nota no fim.</p>
+        <h1 className="mat-title" style={{ fontSize: "40px" }}>Treino por <em>voz</em> com a IA cliente</h1>
+        <p className="mat-lede">Escolha o produto que quer treinar. O cliente atende, resiste e joga objeções reais. Você fala (ou digita), conduz pelo método e recebe uma nota no fim.</p>
       </div>
-      <div className="cards">
-        {SCENARIOS.map((s, i) => (
-          <button key={s.id} className="card reveal" style={{ animationDelay: `${0.06 * i + 0.05}s` }} onClick={() => onPick(s)}>
-            <div className="card-top"><span className="card-emoji">{s.emoji}</span>
-              <span className="pill" style={{ color: diffColor(s.dificuldade), borderColor: diffColor(s.dificuldade) }}>{s.dificuldade}</span></div>
-            <div className="card-title">{s.titulo}</div>
-            <div className="card-persona">{s.persona}</div>
-            <div className="card-meta">Comprou <b>{s.comprou}</b> · oferecer <b>{s.complementar}</b></div>
-            <div className="card-cta">Iniciar ligação →</div>
-          </button>
-        ))}
+      <div className="rp-controls">
+        <input className="rp-search" placeholder="🔎 Buscar produto ou nicho…" value={busca} onChange={(e) => setBusca(e.target.value)} />
+        <div className="rp-diff">
+          <span className="rp-diff-label">Nível do cliente:</span>
+          {DIFICULDADES.map((d) => (
+            <button key={d} className={`rp-diff-btn ${dificuldade === d ? "active" : ""}`}
+              style={dificuldade === d ? { color: diffColor(d), borderColor: diffColor(d) } : undefined}
+              onClick={() => setDificuldade(d)}>{d}</button>
+          ))}
+        </div>
       </div>
+      {porCategoria.length === 0 && <p className="rp-empty">Nenhum produto encontrado pra "{busca}".</p>}
+      {porCategoria.map((g) => (
+        <div key={g.cat.nome} className="cat-block">
+          <div className="cat-head"><span className="cat-emoji">{g.cat.emoji}</span>{g.cat.nome} <span className="cat-count">{g.itens.length}</span></div>
+          <div className="cards">
+            {g.itens.map((s, i) => (
+              <button key={s.id} className="card reveal" style={{ animationDelay: `${0.03 * i + 0.03}s` }} onClick={() => onPick(s, dificuldade)}>
+                <div className="card-top"><span className="card-emoji">{s.emoji}</span>
+                  <span className="pill" style={{ color: diffColor(dificuldade), borderColor: diffColor(dificuldade) }}>{dificuldade}</span></div>
+                <div className="card-title">{s.nome}</div>
+                <div className="card-persona">{s.foco || s.categoria}</div>
+                <div className="card-meta">Oferecer <b>{s.crossell || "complementar"}</b></div>
+                <div className="card-cta">Iniciar ligação →</div>
+              </button>
+            ))}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
@@ -612,7 +766,7 @@ function RpResult({ ev, scenario, onRetry, onNew }) {
       <div className="res-head">
         <Gauge nota={ev.nota} />
         <div>
-          <div className="kicker">Avaliação · {scenario.persona.split(",")[0]}</div>
+          <div className="kicker">Avaliação · {scenario.nome}</div>
           <h2 className="res-title">{ev.fechou ? "Fechou a venda ✓" : "Não fechou"}</h2>
           <p className="res-resumo">{ev.resumo}</p>
         </div>
@@ -806,6 +960,29 @@ const CSS = `
 .card:hover .card-cta{opacity:1;transform:translateX(0);}
 .reveal{opacity:0;transform:translateY(14px);animation:rise .5s cubic-bezier(.2,.7,.3,1) forwards;}
 @keyframes rise{to{opacity:1;transform:translateY(0);}}
+
+/* seletor: busca + dificuldade + categorias */
+.rp-controls{display:flex;gap:14px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin:6px 0 26px;}
+.rp-search{flex:1;min-width:240px;background:var(--surface);border:1px solid var(--line);border-radius:12px;color:var(--text);font-family:inherit;font-size:15px;padding:12px 16px;}
+.rp-search:focus{outline:none;border-color:rgba(47,227,113,.55);}
+.rp-diff{display:flex;align-items:center;gap:6px;}
+.rp-diff-label{font-size:13px;color:var(--muted);margin-right:2px;}
+.rp-diff-btn{background:var(--surface);border:1px solid var(--line);color:var(--muted);font-family:inherit;font-size:13px;font-weight:600;padding:8px 13px;border-radius:9px;cursor:pointer;transition:.15s;}
+.rp-diff-btn:hover{color:var(--text);}
+.rp-diff-btn.active{background:rgba(255,255,255,.04);}
+.rp-empty{color:var(--muted);font-size:15px;padding:20px 0;}
+.cat-block{margin-bottom:30px;}
+.cat-head{display:flex;align-items:center;gap:9px;font-size:14px;font-weight:600;color:var(--text);letter-spacing:.01em;margin:0 0 13px;padding-bottom:9px;border-bottom:1px solid var(--line);}
+.cat-emoji{font-size:17px;}
+.cat-count{margin-left:auto;font-size:12px;color:var(--dim);background:rgba(0,0,0,.3);border:1px solid var(--line);border-radius:999px;padding:2px 9px;font-weight:600;}
+.chat-head-actions{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.voice-toggle{white-space:nowrap;background:var(--surface);border:1px solid var(--line);color:var(--muted);border-radius:10px;padding:10px 14px;font-weight:600;font-size:13px;cursor:pointer;font-family:inherit;transition:.15s;}
+.voice-toggle.on{color:var(--accent);border-color:rgba(47,227,113,.4);background:rgba(47,227,113,.08);}
+.mic-btn{white-space:nowrap;flex-shrink:0;background:var(--surface);border:1px solid var(--line);color:var(--text);border-radius:12px;padding:12px 16px;font-weight:600;font-size:14px;cursor:pointer;font-family:inherit;transition:.15s;}
+.mic-btn:hover:not(:disabled){border-color:rgba(47,227,113,.5);color:var(--accent);}
+.mic-btn:disabled{opacity:.45;cursor:default;}
+.mic-btn.rec{background:rgba(224,87,74,.16);border-color:var(--bad);color:#ffb3ab;animation:pulse-rec 1.1s ease-in-out infinite;}
+@keyframes pulse-rec{0%,100%{box-shadow:0 0 0 0 rgba(224,87,74,.35);}50%{box-shadow:0 0 0 6px rgba(224,87,74,0);}}
 .chat-layout{display:grid;grid-template-columns:290px 1fr;height:calc(100vh - 60px);}
 .side{border-right:1px solid var(--line);padding:24px 22px;overflow-y:auto;background:rgba(0,0,0,.14);}
 .link-back{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:0;margin-bottom:20px;}
