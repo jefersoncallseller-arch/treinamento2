@@ -274,6 +274,17 @@ async function transcreverAudio(blob) {
   return (data.text || "").trim();
 }
 
+// Ligação ao vivo: transcreve + responde numa viagem só (menor latência).
+async function ligarTurno(blob, system, messages) {
+  const audio = await blobToBase64(blob);
+  const res = await fetch("/api/ligar", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ audio, mime: blob.type || "audio/webm", system, messages }),
+  });
+  if (!res.ok) throw new Error("HTTP " + res.status);
+  return await res.json(); // { texto, reply }
+}
+
 const STATUS_META = {
   feita: { label: "Feita", color: "var(--good)", bg: "rgba(134,176,73,.14)" },
   parcial: { label: "Parcial", color: "var(--warn)", bg: "rgba(224,164,88,.16)" },
@@ -701,13 +712,16 @@ function RoleplayView() {
       const blob = new Blob(chunksRef.current, { type: mr.mimeType || "audio/webm" });
       if (!spoke || blob.size < 2500) { listenLoop(); return; } // nada dito, escuta de novo
       setPhase("processing"); setTranscribing(true);
-      let texto = "";
-      try { texto = await transcreverAudio(blob); } catch {}
+      let texto = "", reply = "";
+      try {
+        const out = await ligarTurno(blob, clientSystem(scenario, dificuldade), buildApi(messagesRef.current));
+        texto = (out.texto || "").trim(); reply = (out.reply || "").trim();
+      } catch { setError("Falha na ligação. Fale de novo."); }
       setTranscribing(false);
       if (!callActiveRef.current) return;
-      if (!texto) { listenLoop(); return; }
-      const reply = await turn(texto);
-      if (!callActiveRef.current) return;
+      if (!texto) { listenLoop(); return; } // nada entendido, escuta de novo
+      const after = [...messagesRef.current, { role: "vendedor", text: texto }, { role: "cliente", text: reply || "..." }];
+      messagesRef.current = after; setMessages(after);
       if (reply) { setPhase("speaking"); await speakReply(reply); }
       if (callActiveRef.current) listenLoop();
     };
