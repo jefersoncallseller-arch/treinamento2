@@ -556,7 +556,7 @@ function vozDoNicho(cat) {
 }
 // Parâmetros de detecção de fala (VAD)
 const VAD_START = 0.025;   // acima disso = você está falando
-const VAD_SILENCE_MS = 1300; // silêncio pra considerar que você terminou
+const VAD_SILENCE_MS = 500; // silêncio pra considerar que você terminou (baixo = resposta mais rápida)
 const VAD_NOSPEECH_MS = 9000; // se ninguém falar, recomeça o ciclo
 const VAD_MAX_MS = 22000;  // teto por fala
 

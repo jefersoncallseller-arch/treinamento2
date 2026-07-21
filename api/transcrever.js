@@ -16,7 +16,7 @@ export default async function handler(req, res) {
     const buf = Buffer.from(audio, "base64");
     const form = new FormData();
     form.append("file", new Blob([buf], { type: mime || "audio/webm" }), "audio.webm");
-    form.append("model", "whisper-large-v3");
+    form.append("model", "whisper-large-v3-turbo");
     form.append("language", "pt");
     form.append("temperature", "0");
 
