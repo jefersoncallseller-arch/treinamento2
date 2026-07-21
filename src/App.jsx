@@ -175,7 +175,7 @@ function perfilNicho(cat) {
 }
 
 function clientSystem(p, dificuldade) {
-  return `${METODO}
+  return `Você está simulando um CLIENTE numa ligação de vendas (crossell) de uma empresa brasileira de nutracêuticos. O vendedor ligou porque você comprou um produto no site e vai tentar te orientar o uso e oferecer um complementar.
 
 CONTEXTO DO PRODUTO (é a copy que o VENDEDOR deveria seguir — você NÃO conhece isso, é só referência pra você reagir com realismo):
 Produto que o cliente comprou: ${p.produto}${p.empresa ? ` (empresa ${p.empresa})` : ""}
