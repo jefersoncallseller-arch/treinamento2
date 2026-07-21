@@ -561,7 +561,7 @@ const VAD_NOSPEECH_MS = 9000; // se ninguém falar, recomeça o ciclo
 const VAD_MAX_MS = 22000;  // teto por fala
 
 const TTS_LABEL = { eleven: "🎙️ Voz natural", browser: "🔊 Voz do navegador", off: "🔇 Sem voz" };
-const TTS_NEXT = { eleven: "browser", browser: "off", off: "eleven" };
+const TTS_NEXT = { browser: "eleven", eleven: "off", off: "browser" };
 
 function RoleplayView() {
   const [stage, setStage] = useState("select"); // select | chat | result
@@ -574,7 +574,7 @@ function RoleplayView() {
   const [evaluation, setEvaluation] = useState(null);
   const [error, setError] = useState("");
   const [showCola, setShowCola] = useState(false);
-  const [ttsMode, setTtsMode] = useState("eleven"); // eleven | browser | off
+  const [ttsMode, setTtsMode] = useState("browser"); // browser (padrão, BR grátis) | eleven | off
   const [transcribing, setTranscribing] = useState(false);
   const [callActive, setCallActive] = useState(false);
   const [phase, setPhase] = useState("idle"); // listening | processing | speaking | idle
@@ -590,7 +590,7 @@ function RoleplayView() {
   const vadRef = useRef(null);
   const audioElRef = useRef(null);
   const callActiveRef = useRef(false);
-  const ttsModeRef = useRef("eleven");
+  const ttsModeRef = useRef("browser");
 
   useEffect(() => { if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight; }, [messages, waiting, transcribing]);
   useEffect(() => { messagesRef.current = messages; }, [messages]);
