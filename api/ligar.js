@@ -21,18 +21,31 @@ async function transcrever(key, audioB64, mime) {
 }
 
 async function responder(key, system, messages) {
-  const r = await fetch(`${GROQ}/chat/completions`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
-    body: JSON.stringify({
-      model: "llama-3.3-70b-versatile",
-      max_tokens: 220,
-      messages: [...(system ? [{ role: "system", content: system }] : []), ...messages],
-    }),
+  const body = JSON.stringify({
+    model: "llama-3.3-70b-versatile",
+    max_tokens: 220,
+    messages: [...(system ? [{ role: "system", content: system }] : []), ...messages],
   });
-  if (!r.ok) throw new Error("llm " + r.status + " " + (await r.text()).slice(0, 160));
-  const data = await r.json();
-  return (data.choices?.[0]?.message?.content || "").trim();
+  let lastErr = "";
+  // até 3 tentativas: repete se der 429/5xx OU se a resposta vier vazia
+  for (let tent = 0; tent < 3; tent++) {
+    const r = await fetch(`${GROQ}/chat/completions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+      body,
+    });
+    if (!r.ok) {
+      lastErr = "llm " + r.status + " " + (await r.text()).slice(0, 160);
+      if (r.status !== 429 && r.status < 500) throw new Error(lastErr);
+      await new Promise((res) => setTimeout(res, 1500));
+      continue;
+    }
+    const data = await r.json();
+    const txt = (data.choices?.[0]?.message?.content || "").trim();
+    if (txt) return txt;
+    // veio vazio — tenta de novo
+  }
+  throw new Error(lastErr || "resposta vazia");
 }
 
 export default async function handler(req, res) {

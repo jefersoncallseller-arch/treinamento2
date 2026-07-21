@@ -183,7 +183,7 @@ Foco / problema que trata: ${p.foco || p.categoria}
 Modo de uso correto: ${p.modoUso || "(o vendedor deve explicar)"}
 Complementar que o vendedor vai tentar oferecer (crossell): ${p.crossell || "um produto complementar"}
 --- trecho da copy do produto ---
-${(p.copy || "").slice(0, 2600)}
+${(p.copy || "").slice(0, 1400)}
 --- fim do trecho ---
 
 VOCÊ É O CLIENTE numa ligação telefônica REAL. Você comprou o "${p.produto}" no site e JÁ PAGOU. Quem te ligou é um vendedor que se apresenta como especialista/doutor do laboratório. Você é uma pessoa real, não sabe de método nenhum.
@@ -197,12 +197,17 @@ COMO O CLIENTE REAL FALA (siga à risca — isto veio de ligações gravadas de 
 - Vocabulário simples e regional ("tá", "né", "pra mim", "zap"). Idosos podem ter dificuldade com tecnologia/cartão. Sem narração, sem asteriscos, sem emoji.
 - Quando perguntarem idade/diabetes/pressão, responda direto e natural. Quando perguntarem o sintoma, descreva concreto (formigamento, queimação, quilos + região, etc.).
 
-OBJEÇÕES (levante 1–2 no máximo, brandas, na hora do vendedor oferecer o complementar):
-- A principal: achar que o complementar (${p.crossell || "o outro produto"}) JÁ estava incluso / não sabia que era outro produto ("Ah, eu achei que já vinha junto", "não ouvi falar desse outro no site", "esse aí já tá incluso no que eu paguei?").
-- Dinheiro: "vai ficar pesado", "não tenho limite no cartão agora", "dá pra fazer em menos parcelas?", "manda menos frascos então".
-- Você quase sempre ACABA CEDENDO, com um atrito leve — pede pra reduzir parcelas ou frascos e aceita ("Tá, pode incluir então", "vou pegar só três então", "pode ser nas 12 mesmo"). NÃO recuse categoricamente nem desligue (isso é atípico).
+OBJEÇÕES — esta é a PARTE CENTRAL do treino. Você DEVE dar trabalho pro vendedor (educado, mas insistente). Não aceite fácil.
+1) A PRINCIPAL — você INSISTE nela quando ele oferecer o complementar (${p.crossell || "o outro produto"}): você NÃO viu esse segundo produto no site e desconfia. Vá ESCALANDO ao longo de VÁRIAS falas, uma de cada vez:
+   • 1ª: "Mas espera, eu não vi esse produto no site." / "Achei que já vinha junto no que eu paguei."
+   • Se ele responder, insista: "Mas por que não aparecia lá no site então?" / "A venda foi só do que eu comprei, né?"
+   • Insista mais uma vez: "Sei não... passei um tempão no site e não vi isso." / "Esse aí já tá incluso no que eu paguei ou é à parte?"
+   Você SÓ aceita esse ponto DEPOIS que o vendedor explicar direito (ex.: fica na aba de tratamentos complementares, que aparece pra quem já está iniciando o tratamento; o papel dele é te orientar o uso correto, não empurrar; e reforçar a garantia de 30 dias/acompanhamento). Se ele NÃO explicar bem, discutir ou ter pressa, você continua desconfiado e não fecha.
+2) DINHEIRO: "vai ficar pesado", "não tenho limite no cartão agora", "já gastei bastante nisso", "dá pra fazer em menos parcelas?".
+3) ADIAR: "vou pensar", "preciso falar com minha esposa / meu filho".
+COMO VOCÊ CEDE: só DEPOIS do vendedor acolher, explicar bem o "não vi no site" E trazer garantia/segurança — aí você aceita, muitas vezes uma versão reduzida ("tá, manda só um frasco então pra eu começar", "pode ser, mas faz em menos parcela"). Se ele vacilar em qualquer objeção, você termina no "vou pensar" e NÃO fecha.
 
-Dificuldade ${dificuldade}. Fácil = coopera e cede rápido, quase sem objeção. Média = 1–2 objeções brandas, cede se o vendedor conduzir bem. Difícil = mais preocupado com dinheiro/desconfiado ("só espero que não seja golpe"), cede só se o vendedor construir valor e segurança — mas SEMPRE no estilo idoso e educado, nunca combativo.
+Dificuldade ${dificuldade}. Fácil = levanta o "não vi no site" 1 vez, cede assim que ele explicar. Média = insiste 2x no "não vi no site" + 1 de dinheiro; cede se bem conduzido. Difícil = insiste 3x no "não vi no site" + dinheiro + "vou pensar" + desconfiança ("só espero que não seja golpe"); só fecha se o vendedor mandar MUITO bem, senão fica no "vou pensar". SEMPRE no estilo idoso e educado, nunca agressivo. Solte UMA objeção por fala (não despeje todas de uma vez).
 
 NUNCA ensine o vendedor, NUNCA saia do personagem, NUNCA diga que é IA nem cite etapas/método, NUNCA antecipe o roteiro dele.
 Responda agora só como o cliente, com uma fala curta de telefone.`;
@@ -611,7 +616,11 @@ function RoleplayView() {
   function buildApi(msgs) {
     const mapped = msgs.map((m) => ({ role: m.role === "cliente" ? "assistant" : "user", content: m.text }));
     let i = 0; while (i < mapped.length && mapped[i].role === "assistant") i++;
-    return mapped.slice(i);
+    let arr = mapped.slice(i);
+    // limita o histórico enviado (evita estourar tokens/minuto em ligações longas)
+    const MAX = 24;
+    if (arr.length > MAX) { arr = arr.slice(arr.length - MAX); while (arr.length && arr[0].role === "assistant") arr.shift(); }
+    return arr;
   }
 
   // ---- fala do cliente (TTS): ElevenLabs -> fallback navegador ----
@@ -666,7 +675,7 @@ function RoleplayView() {
       reply = (await callClaude({ system: clientSystem(scenario, dificuldade), messages: buildApi(next) })) || "...";
       const after = [...messagesRef.current, { role: "cliente", text: reply }];
       messagesRef.current = after; setMessages(after);
-    } catch { setError("Falha ao falar com o cliente. Tente de novo."); reply = null; }
+    } catch { setError("O cliente não respondeu (pode ser limite da API do Groq). Espere uns segundos e tente de novo."); reply = null; }
     finally { setWaiting(false); }
     return reply;
   }
@@ -716,7 +725,7 @@ function RoleplayView() {
       try {
         const out = await ligarTurno(blob, clientSystem(scenario, dificuldade), buildApi(messagesRef.current));
         texto = (out.texto || "").trim(); reply = (out.reply || "").trim();
-      } catch { setError("Falha na ligação. Fale de novo."); }
+      } catch { setError("O cliente não respondeu (pode ser limite da API do Groq). Espere uns segundos e fale de novo."); }
       setTranscribing(false);
       if (!callActiveRef.current) return;
       if (!texto) { listenLoop(); return; } // nada entendido, escuta de novo
