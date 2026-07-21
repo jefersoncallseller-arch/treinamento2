@@ -163,6 +163,17 @@ OBJEÇÃO "não vi esse produto no site": acolher → "o senhor entrou na aba de
 OBJEÇÃO (geral): Acolher → não discutir → devolver com valor (reconectar com a dor + garantia + resultado + preço por dia).
 ERROS: abrir oferecendo; pular diagnóstico; falar preço cedo; tratar como venda e não como consulta; discutir a objeção; apresentar o complementar como 2ª venda; desligar no 1º "não"; ter pressa.`;
 
+// Dica de gênero/tom por categoria (baseado nas ligações reais).
+function perfilNicho(cat) {
+  const c = (cat || "").toLowerCase();
+  if (/estimul|próstata|prostata/.test(c)) return "Você é HOMEM, 45–75 anos. Mais direto e pragmático, um pouco orgulhoso, meio cético mas educado. Fala da idade/parceira sem vergonha se vier ao caso.";
+  if (/emagre/.test(c)) return "Você é MULHER, 45–75 anos. Foca em quilos e região do corpo (barriga, culote, coxas). É a mais sensível a preço — pede pra reduzir frascos/parcelas antes de ceder.";
+  if (/mem[oó]ria|cogni/.test(c)) return "Você é idoso(a), 60–85 anos, às vezes comprando pro cônjuge. Um pouco confuso com tecnologia e valores. Cooperativo e agradecido.";
+  if (/diabete|glicad/.test(c)) return "Você é idoso(a), 55–80 anos, tem diabetes (glicada alta) e às vezes pressão. Preocupado com a saúde, cooperativo.";
+  if (/articula|dor|neuropat/.test(c)) return "Você é idoso(a), 60–90 anos, mulher na maioria. Foca na DOR: descreve formigamento, queimação, agulhadas, cãibra, 'pisando em brasa', pior à noite.";
+  return "Você é idoso(a), 55–85 anos, brasileiro(a) comum, cooperativo(a).";
+}
+
 function clientSystem(p, dificuldade) {
   return `${METODO}
 
@@ -175,15 +186,25 @@ Complementar que o vendedor vai tentar oferecer (crossell): ${p.crossell || "um 
 ${(p.copy || "").slice(0, 2600)}
 --- fim do trecho ---
 
-VOCÊ É O CLIENTE numa ligação telefônica. Você comprou o "${p.produto}" no site e JÁ PAGOU. Você tem uma queixa real relacionada a "${p.foco || p.categoria}" — invente detalhes plausíveis e mantenha coerência (idade, há quanto tempo sente, como atrapalha o dia a dia).
-Quem te ligou é um vendedor que se apresenta como especialista. Você não sabe de método nenhum — é só uma pessoa real no telefone.
-- Fale português coloquial do Brasil, falas CURTAS (1–3 frases). Sem narração, sem asteriscos, sem emoji.
-- Você não está louco pra comprar mais; já gastou. Fica meio na defensiva, sem ser grosseiro.
-- Só esquenta e considera o complementar (${p.crossell || "o complementar"}) SE o vendedor fizer o método: confirmar pedido, perguntar da dor e ESCUTAR, explicar o problema, orientar o uso, e trazer o complementar como parte do tratamento. Se ele abrir empurrando oferta, tiver pressa, falar preço cedo ou DISCUTIR sua objeção, você esfria e tende ao "vou pensar".
-- Solte objeções reais, uma por vez, na hora natural: "não vi esse produto no site", "tá caro / não tenho condições agora", "vou pensar", "preciso falar com meu/minha esposo(a)", "já gastei bastante".
-- Dificuldade ${dificuldade}. Fácil = esquenta rápido, 1 objeção, fecha se razoável. Média = 2 objeções. Difícil = cético, 3+ objeções, só fecha se muito bem feito.
-- Decide sozinho se compra, conforme o vendedor merecer. Pode não comprar se ele foi empurrão.
-- NUNCA ensine o vendedor, NUNCA saia do personagem, NUNCA diga que é IA nem cite etapas/método.
+VOCÊ É O CLIENTE numa ligação telefônica REAL. Você comprou o "${p.produto}" no site e JÁ PAGOU. Quem te ligou é um vendedor que se apresenta como especialista/doutor do laboratório. Você é uma pessoa real, não sabe de método nenhum.
+
+QUEM VOCÊ É: ${perfilNicho(p.categoria)}
+Você tem uma queixa real relacionada a "${p.foco || p.categoria}" — invente detalhes coerentes (idade exata, há quanto tempo, como incomoda) e mantenha ao longo da ligação.
+
+COMO O CLIENTE REAL FALA (siga à risca — isto veio de ligações gravadas de verdade):
+- Respostas MUITO CURTAS, quase monossilábicas na maior parte: "Tá bom", "Isso, isso", "Correto", "Certo", "Sim, sim", "Pode ser", "Uhum", "É pra mim", e o número da idade seco ("63"). DEIXE O VENDEDOR FALAR — você é o eco, não monologa. Só se estenda um pouco quando descrever a SUA dor/objetivo.
+- Cooperativo, respeitoso, até deferente ("obrigado", "Deus abençoe", "tá jóia"). Confia na autoridade do especialista. NÃO é combativo, sarcástico nem agressivo.
+- Vocabulário simples e regional ("tá", "né", "pra mim", "zap"). Idosos podem ter dificuldade com tecnologia/cartão. Sem narração, sem asteriscos, sem emoji.
+- Quando perguntarem idade/diabetes/pressão, responda direto e natural. Quando perguntarem o sintoma, descreva concreto (formigamento, queimação, quilos + região, etc.).
+
+OBJEÇÕES (levante 1–2 no máximo, brandas, na hora do vendedor oferecer o complementar):
+- A principal: achar que o complementar (${p.crossell || "o outro produto"}) JÁ estava incluso / não sabia que era outro produto ("Ah, eu achei que já vinha junto", "não ouvi falar desse outro no site", "esse aí já tá incluso no que eu paguei?").
+- Dinheiro: "vai ficar pesado", "não tenho limite no cartão agora", "dá pra fazer em menos parcelas?", "manda menos frascos então".
+- Você quase sempre ACABA CEDENDO, com um atrito leve — pede pra reduzir parcelas ou frascos e aceita ("Tá, pode incluir então", "vou pegar só três então", "pode ser nas 12 mesmo"). NÃO recuse categoricamente nem desligue (isso é atípico).
+
+Dificuldade ${dificuldade}. Fácil = coopera e cede rápido, quase sem objeção. Média = 1–2 objeções brandas, cede se o vendedor conduzir bem. Difícil = mais preocupado com dinheiro/desconfiado ("só espero que não seja golpe"), cede só se o vendedor construir valor e segurança — mas SEMPRE no estilo idoso e educado, nunca combativo.
+
+NUNCA ensine o vendedor, NUNCA saia do personagem, NUNCA diga que é IA nem cite etapas/método, NUNCA antecipe o roteiro dele.
 Responda agora só como o cliente, com uma fala curta de telefone.`;
 }
 
@@ -528,6 +549,19 @@ function pickVoicePtBr() {
   const vs = window.speechSynthesis.getVoices();
   return vs.find((v) => /pt[-_]?br/i.test(v.lang)) || vs.find((v) => /^pt/i.test(v.lang)) || null;
 }
+// Gênero da voz por nicho (baseado nas ligações reais).
+function vozDoNicho(cat) {
+  const c = (cat || "").toLowerCase();
+  return /estimul|próstata|prostata/.test(c) ? "m" : "f";
+}
+// Parâmetros de detecção de fala (VAD)
+const VAD_START = 0.025;   // acima disso = você está falando
+const VAD_SILENCE_MS = 1300; // silêncio pra considerar que você terminou
+const VAD_NOSPEECH_MS = 9000; // se ninguém falar, recomeça o ciclo
+const VAD_MAX_MS = 22000;  // teto por fala
+
+const TTS_LABEL = { eleven: "🎙️ Voz natural", browser: "🔊 Voz do navegador", off: "🔇 Sem voz" };
+const TTS_NEXT = { eleven: "browser", browser: "off", off: "eleven" };
 
 function RoleplayView() {
   const [stage, setStage] = useState("select"); // select | chat | result
@@ -540,90 +574,177 @@ function RoleplayView() {
   const [evaluation, setEvaluation] = useState(null);
   const [error, setError] = useState("");
   const [showCola, setShowCola] = useState(false);
-  const [voiceOn, setVoiceOn] = useState(true);
-  const [recording, setRecording] = useState(false);
+  const [ttsMode, setTtsMode] = useState("eleven"); // eleven | browser | off
   const [transcribing, setTranscribing] = useState(false);
+  const [callActive, setCallActive] = useState(false);
+  const [phase, setPhase] = useState("idle"); // listening | processing | speaking | idle
+  const [level, setLevel] = useState(0);
+
   const scrollRef = useRef(null);
+  const messagesRef = useRef([]);
   const recRef = useRef(null);
   const chunksRef = useRef([]);
   const streamRef = useRef(null);
+  const acRef = useRef(null);
+  const analyserRef = useRef(null);
+  const vadRef = useRef(null);
+  const audioElRef = useRef(null);
+  const callActiveRef = useRef(false);
+  const ttsModeRef = useRef("eleven");
 
   useEffect(() => { if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight; }, [messages, waiting, transcribing]);
-  // pré-carrega vozes do navegador
-  useEffect(() => { if (window.speechSynthesis) { pickVoicePtBr(); window.speechSynthesis.onvoiceschanged = () => pickVoicePtBr(); } return () => { if (window.speechSynthesis) window.speechSynthesis.cancel(); }; }, []);
+  useEffect(() => { messagesRef.current = messages; }, [messages]);
+  useEffect(() => { ttsModeRef.current = ttsMode; }, [ttsMode]);
+  useEffect(() => { if (window.speechSynthesis) { pickVoicePtBr(); window.speechSynthesis.onvoiceschanged = () => pickVoicePtBr(); } return () => hardStop(); }, []);
 
-  function speak(text) {
-    if (!voiceOn || !window.speechSynthesis || !text) return;
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    const v = pickVoicePtBr();
-    if (v) u.voice = v;
-    u.lang = "pt-BR"; u.rate = 1.0; u.pitch = 1.0;
-    window.speechSynthesis.speak(u);
-  }
-
-  function start(s, dif) {
-    const d = dif || dificuldade;
-    setScenario(s); setDificuldade(d);
-    setMessages([{ role: "cliente", text: "Alô?", opening: true }]);
-    setInput(""); setError(""); setEvaluation(null); setStage("chat");
-    if (window.speechSynthesis) window.speechSynthesis.cancel();
-  }
   function buildApi(msgs) {
     const mapped = msgs.map((m) => ({ role: m.role === "cliente" ? "assistant" : "user", content: m.text }));
     let i = 0; while (i < mapped.length && mapped[i].role === "assistant") i++;
     return mapped.slice(i);
   }
-  async function send(textArg) {
-    const text = (textArg != null ? textArg : input).trim();
-    if (!text || waiting) return;
-    const next = [...messages, { role: "vendedor", text }];
-    setMessages(next); setInput(""); setWaiting(true); setError("");
-    try {
-      const reply = await callClaude({ system: clientSystem(scenario, dificuldade), messages: buildApi(next) });
-      const r = reply || "...";
-      setMessages((m) => [...m, { role: "cliente", text: r }]);
-      speak(r);
-    } catch { setError("Falha ao falar com o cliente. Tente de novo."); }
-    finally { setWaiting(false); }
+
+  // ---- fala do cliente (TTS): ElevenLabs -> fallback navegador ----
+  function browserSpeak(text, done) {
+    if (!window.speechSynthesis) return done();
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    const v = pickVoicePtBr(); if (v) u.voice = v;
+    u.lang = "pt-BR"; u.rate = 1.0; u.onend = () => done(); u.onerror = () => done();
+    window.speechSynthesis.speak(u);
+  }
+  function speakReply(text) {
+    return new Promise((resolve) => {
+      const mode = ttsModeRef.current;
+      if (!text || mode === "off") return resolve();
+      if (mode === "browser") return browserSpeak(text, resolve);
+      // ElevenLabs
+      fetch("/api/falar", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text, voice: vozDoNicho(scenario && scenario.categoria) }),
+      })
+        .then(async (r) => {
+          if (!r.ok) throw new Error("tts " + r.status);
+          const blob = await r.blob();
+          const url = URL.createObjectURL(blob);
+          const a = audioElRef.current || (audioElRef.current = new Audio());
+          a.src = url;
+          a.onended = () => { URL.revokeObjectURL(url); resolve(); };
+          a.onerror = () => { URL.revokeObjectURL(url); resolve(); };
+          a.play().catch(() => resolve());
+        })
+        .catch(() => browserSpeak(text, resolve)); // se ElevenLabs falhar, usa navegador
+    });
   }
 
-  async function startRec() {
-    if (recording || waiting || transcribing) return;
-    if (window.speechSynthesis) window.speechSynthesis.cancel();
+  function start(s, dif) {
+    const d = dif || dificuldade;
+    hardStop();
+    setScenario(s); setDificuldade(d);
+    const init = [{ role: "cliente", text: "Alô?", opening: true }];
+    messagesRef.current = init; setMessages(init);
+    setInput(""); setError(""); setEvaluation(null); setStage("chat"); setPhase("idle");
+  }
+
+  // Uma "rodada": adiciona a fala do vendedor, pega a resposta do cliente. Retorna a resposta.
+  async function turn(text) {
+    if (!text || !text.trim()) return null;
+    const next = [...messagesRef.current, { role: "vendedor", text: text.trim() }];
+    messagesRef.current = next; setMessages(next); setWaiting(true); setError("");
+    let reply = null;
+    try {
+      reply = (await callClaude({ system: clientSystem(scenario, dificuldade), messages: buildApi(next) })) || "...";
+      const after = [...messagesRef.current, { role: "cliente", text: reply }];
+      messagesRef.current = after; setMessages(after);
+    } catch { setError("Falha ao falar com o cliente. Tente de novo."); reply = null; }
+    finally { setWaiting(false); }
+    return reply;
+  }
+
+  // Envio por texto digitado
+  async function sendTyped() {
+    const text = input.trim();
+    if (!text || waiting) return;
+    setInput("");
+    const reply = await turn(text);
+    if (reply) speakReply(reply);
+  }
+
+  // ---- Ligação mãos-livres (voz contínua com detecção de silêncio) ----
+  async function startCall() {
+    if (callActiveRef.current) return;
+    setError("");
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
-      chunksRef.current = [];
-      const mr = new MediaRecorder(stream);
-      mr.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
-      mr.onstop = async () => {
-        const blob = new Blob(chunksRef.current, { type: mr.mimeType || "audio/webm" });
-        if (streamRef.current) streamRef.current.getTracks().forEach((t) => t.stop());
-        if (blob.size < 1200) { setError("Não captei áudio. Fale um pouco mais perto do microfone."); return; }
-        setTranscribing(true); setError("");
-        try {
-          const texto = await transcreverAudio(blob);
-          if (texto) await send(texto);
-          else setError("Não entendi o áudio. Tente de novo.");
-        } catch { setError("Falha ao transcrever o áudio. Tente de novo."); }
-        finally { setTranscribing(false); }
-      };
-      recRef.current = mr;
-      mr.start();
-      setRecording(true);
+      const AC = window.AudioContext || window.webkitAudioContext;
+      const ac = new AC(); acRef.current = ac;
+      const src = ac.createMediaStreamSource(stream);
+      const an = ac.createAnalyser(); an.fftSize = 1024; src.connect(an); analyserRef.current = an;
+      callActiveRef.current = true; setCallActive(true);
+      listenLoop();
     } catch { setError("Não consegui acessar o microfone. Libere a permissão no navegador."); }
   }
-  function stopRec() {
-    if (recRef.current && recording) { recRef.current.stop(); setRecording(false); }
+
+  function listenLoop() {
+    if (!callActiveRef.current || !streamRef.current) return;
+    setPhase("listening");
+    chunksRef.current = [];
+    let mr;
+    try { mr = new MediaRecorder(streamRef.current); } catch { setError("Gravação não suportada neste navegador."); return; }
+    recRef.current = mr;
+    let spoke = false, lastVoice = 0; const startedAt = Date.now();
+    const stopSafe = () => { try { if (mr.state !== "inactive") mr.stop(); } catch {} };
+    mr.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
+    mr.onstop = async () => {
+      clearInterval(vadRef.current);
+      if (!callActiveRef.current) return;
+      const blob = new Blob(chunksRef.current, { type: mr.mimeType || "audio/webm" });
+      if (!spoke || blob.size < 2500) { listenLoop(); return; } // nada dito, escuta de novo
+      setPhase("processing"); setTranscribing(true);
+      let texto = "";
+      try { texto = await transcreverAudio(blob); } catch {}
+      setTranscribing(false);
+      if (!callActiveRef.current) return;
+      if (!texto) { listenLoop(); return; }
+      const reply = await turn(texto);
+      if (!callActiveRef.current) return;
+      if (reply) { setPhase("speaking"); await speakReply(reply); }
+      if (callActiveRef.current) listenLoop();
+    };
+    mr.start();
+    const data = new Uint8Array(analyserRef.current.frequencyBinCount);
+    vadRef.current = setInterval(() => {
+      const an = analyserRef.current; if (!an) return;
+      an.getByteTimeDomainData(data);
+      let sum = 0; for (let i = 0; i < data.length; i++) { const v = (data[i] - 128) / 128; sum += v * v; }
+      const rms = Math.sqrt(sum / data.length);
+      setLevel(rms);
+      const now = Date.now();
+      if (rms > VAD_START) { spoke = true; lastVoice = now; }
+      const elapsed = now - startedAt;
+      if (spoke && now - lastVoice > VAD_SILENCE_MS) stopSafe();
+      else if (!spoke && elapsed > VAD_NOSPEECH_MS) stopSafe();
+      else if (elapsed > VAD_MAX_MS) stopSafe();
+    }, 45);
   }
+
+  function endCall() {
+    callActiveRef.current = false; setCallActive(false); setPhase("idle"); setLevel(0);
+    clearInterval(vadRef.current);
+    try { if (recRef.current && recRef.current.state !== "inactive") recRef.current.stop(); } catch {}
+    if (streamRef.current) { streamRef.current.getTracks().forEach((t) => t.stop()); streamRef.current = null; }
+    if (acRef.current) { try { acRef.current.close(); } catch {} acRef.current = null; }
+    if (audioElRef.current) { try { audioElRef.current.pause(); } catch {} }
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+  }
+  function hardStop() { endCall(); }
 
   async function finish() {
     if (evaluating) return;
-    if (messages.filter((m) => m.role === "vendedor").length === 0) { setError("Conduza parte da ligação antes de avaliar."); return; }
-    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    if (messagesRef.current.filter((m) => m.role === "vendedor").length === 0) { setError("Conduza parte da ligação antes de avaliar."); return; }
+    endCall();
     setEvaluating(true); setError("");
-    const transcript = messages.map((m) => (m.role === "cliente" ? "C: " : "V: ") + m.text).join("\n");
+    const transcript = messagesRef.current.map((m) => (m.role === "cliente" ? "C: " : "V: ") + m.text).join("\n");
     try {
       const raw = await callClaude({ system: EVAL_SYSTEM, messages: [{ role: "user", content: `Produto: ${scenario.nome} (${scenario.foco}); complementar (crossell): ${scenario.crossell}. Dificuldade ${dificuldade}.\n\nTRANSCRIÇÃO:\n${transcript}\n\nAvalie e retorne SÓ o JSON.` }] });
       const clean = raw.replace(/```json/gi, "").replace(/```/g, "").trim();
@@ -634,11 +755,13 @@ function RoleplayView() {
   }
 
   if (stage === "select") return <RpSelect onPick={start} dificuldade={dificuldade} setDificuldade={setDificuldade} />;
-  if (stage === "result" && evaluation) return <RpResult ev={evaluation} scenario={scenario} onRetry={() => start(scenario, dificuldade)} onNew={() => setStage("select")} />;
+  if (stage === "result" && evaluation) return <RpResult ev={evaluation} scenario={scenario} onRetry={() => start(scenario, dificuldade)} onNew={() => { hardStop(); setStage("select"); }} />;
+
+  const statusTxt = transcribing ? "⏳ Transcrevendo…" : (waiting || phase === "speaking") ? "🗣️ Cliente falando…" : "🎧 Pode falar…";
   return (
     <div className="chat-layout">
       <aside className="side">
-        <button className="link-back" onClick={() => setStage("select")}>← trocar produto</button>
+        <button className="link-back" onClick={() => { hardStop(); setStage("select"); }}>← trocar produto</button>
         <div className="crm">
           <div className="crm-emoji">{scenario.emoji}</div>
           <div className="crm-name">{scenario.nome}</div>
@@ -653,12 +776,12 @@ function RoleplayView() {
       <main className="chat">
         <div className="chat-head">
           <div>
-            <div className="chat-head-title">Ligação em andamento · {scenario.nome}</div>
-            <div className="chat-head-sub">Você é o especialista. Fale ou digite: apresente-se e confirme o pedido.</div>
+            <div className="chat-head-title">Ligação · {scenario.nome}</div>
+            <div className="chat-head-sub">Você é o especialista. Inicie a ligação e fale, ou digite.</div>
           </div>
           <div className="chat-head-actions">
-            <button className={`voice-toggle ${voiceOn ? "on" : ""}`} onClick={() => { setVoiceOn(!voiceOn); if (window.speechSynthesis) window.speechSynthesis.cancel(); }} title="Cliente fala em voz alta">
-              {voiceOn ? "🔊 Voz do cliente" : "🔇 Voz desligada"}
+            <button className="voice-toggle on" onClick={() => setTtsMode(TTS_NEXT[ttsMode])} title="Trocar voz do cliente">
+              {TTS_LABEL[ttsMode]}
             </button>
             <button className="finish-btn" onClick={finish} disabled={evaluating}>{evaluating ? "Avaliando…" : "Encerrar e avaliar"}</button>
           </div>
@@ -673,17 +796,22 @@ function RoleplayView() {
           {(waiting || transcribing) && <div className="row cliente"><div className="who">{transcribing ? "Transcrevendo…" : "Cliente"}</div><div className="bubble cliente typing"><span></span><span></span><span></span></div></div>}
         </div>
         {error && <div className="err">{error}</div>}
-        <div className="composer">
-          <button className={`mic-btn ${recording ? "rec" : ""}`} onClick={recording ? stopRec : startRec} disabled={waiting || transcribing}
-            title={recording ? "Parar e enviar" : "Falar"}>
-            {recording ? "⏹ Parar" : "🎤 Falar"}
-          </button>
-          <textarea className="input" rows={1} placeholder={recording ? "Gravando… fale e depois toque em Parar" : "Fale (🎤) ou digite como o especialista…"} value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
-            disabled={waiting || recording || transcribing} />
-          <button className="send-btn" onClick={() => send()} disabled={waiting || recording || transcribing || !input.trim()}>Enviar</button>
-        </div>
+        {callActive ? (
+          <div className="call-bar">
+            <div className="call-live"><span className="call-dot" />{statusTxt}</div>
+            <div className="level"><div className="level-fill" style={{ width: Math.min(100, Math.round(level * 450)) + "%" }} /></div>
+            <button className="end-call" onClick={endCall}>⏹ Encerrar ligação</button>
+          </div>
+        ) : (
+          <div className="composer">
+            <button className="call-btn" onClick={startCall} title="Ligação por voz, sem clicar em gravar">📞 Iniciar ligação</button>
+            <textarea className="input" rows={1} placeholder="Ou digite como o especialista…" value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendTyped(); } }}
+              disabled={waiting} />
+            <button className="send-btn" onClick={sendTyped} disabled={waiting || !input.trim()}>Enviar</button>
+          </div>
+        )}
       </main>
     </div>
   );
@@ -983,6 +1111,16 @@ const CSS = `
 .mic-btn:disabled{opacity:.45;cursor:default;}
 .mic-btn.rec{background:rgba(224,87,74,.16);border-color:var(--bad);color:#ffb3ab;animation:pulse-rec 1.1s ease-in-out infinite;}
 @keyframes pulse-rec{0%,100%{box-shadow:0 0 0 0 rgba(224,87,74,.35);}50%{box-shadow:0 0 0 6px rgba(224,87,74,0);}}
+/* ligação mãos-livres */
+.call-btn{white-space:nowrap;flex-shrink:0;background:var(--accent);color:#04160b;border:none;border-radius:12px;padding:12px 18px;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;transition:.15s;}
+.call-btn:hover{filter:brightness(1.08);}
+.call-bar{display:flex;align-items:center;gap:14px;padding:16px 26px 22px;border-top:1px solid var(--line);}
+.call-live{display:flex;align-items:center;gap:9px;font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;}
+.call-dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent);animation:pulse-rec 1.2s ease-in-out infinite;}
+.level{flex:1;height:8px;background:rgba(255,255,255,.08);border-radius:99px;overflow:hidden;}
+.level-fill{height:100%;background:linear-gradient(90deg,var(--accent2),var(--accent));border-radius:99px;transition:width .08s linear;}
+.end-call{white-space:nowrap;flex-shrink:0;background:rgba(224,87,74,.16);border:1px solid var(--bad);color:#ffb3ab;border-radius:12px;padding:11px 18px;font-weight:600;font-size:14px;cursor:pointer;font-family:inherit;transition:.15s;}
+.end-call:hover{background:rgba(224,87,74,.26);}
 .chat-layout{display:grid;grid-template-columns:290px 1fr;height:calc(100vh - 60px);}
 .side{border-right:1px solid var(--line);padding:24px 22px;overflow-y:auto;background:rgba(0,0,0,.14);}
 .link-back{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:0;margin-bottom:20px;}
