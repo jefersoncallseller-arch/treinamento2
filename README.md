@@ -1,5 +1,7 @@
 # Site de Treinamento — Crossell / CallSeller
 
+> No ar em https://site-treinamento.vercel.app — deploy automático via Vercel a cada push na `main`.
+
 Site com 3 abas:
 - **Treinamento** — o guia completo de crossell (material).
 - **Fazer o treino** — roleplay com IA cliente + avaliação com nota.
